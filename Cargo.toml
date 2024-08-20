@@ -3,4 +3,9 @@ name = "voting-dapp"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "dapp"
+crate-type = ["cdylib", "lib"]
+
 [dependencies]
+solana-program = "2.0.6"
