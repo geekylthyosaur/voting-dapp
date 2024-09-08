@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -8,6 +9,11 @@ use solana_sdk::{
     signature::{read_keypair_file, Signer},
     transaction::Transaction,
 };
+
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+enum InstructionData {
+    Msg(String),
+}
 
 fn main() {
     let program_id = Pubkey::from_str("B3pBndkF5cN36QZ1EqoRigRayVKRx5Dz1XMj6xXSFxBZ").unwrap();
@@ -19,8 +25,13 @@ fn main() {
 
     let blockhash_info = connection.get_latest_blockhash().unwrap();
 
+    let msg = "Hi!".to_string();
+    let instruction_data = InstructionData::Msg(msg);
+    let mut bytes = Vec::new();
+    instruction_data.serialize(&mut bytes).unwrap();
+
     let mut transaction = Transaction::new_with_payer(
-        &[Instruction::new_with_bytes(program_id, &[], vec![])],
+        &[Instruction::new_with_bytes(program_id, &bytes, vec![])],
         Some(&keypair.pubkey()),
     );
 
@@ -30,10 +41,5 @@ fn main() {
         .send_and_confirm_transaction(&transaction)
         .unwrap();
 
-    println!("Transaction sent with hash: {}", tx_hash);
-
-    println!(
-        "Congratulations! Look at your ‘Hello World’ transaction in the Solana Explorer: https://explorer.solana.com/tx/{}?cluster=custom",
-        tx_hash
-    );
+    println!("https://explorer.solana.com/tx/{}?cluster=custom", tx_hash);
 }
