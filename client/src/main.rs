@@ -4,15 +4,22 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
-    instruction::Instruction,
+    instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
-    signature::{read_keypair_file, Signer},
+    signature::{read_keypair_file, Keypair, Signer},
+    system_program,
     transaction::Transaction,
 };
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
+#[non_exhaustive]
 enum InstructionData {
-    Msg(String),
+    CreatePoll(Poll),
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Debug)]
+struct Poll {
+    question: String,
 }
 
 fn main() {
@@ -25,17 +32,31 @@ fn main() {
 
     let blockhash_info = connection.get_latest_blockhash().unwrap();
 
-    let msg = "Hi!".to_string();
-    let instruction_data = InstructionData::Msg(msg);
+    let poll = Poll {
+        question: "How are you doing?".to_string(),
+    };
+    let instruction_data = InstructionData::CreatePoll(poll);
     let mut bytes = Vec::new();
     instruction_data.serialize(&mut bytes).unwrap();
 
+    let payer_pubkey = keypair.pubkey();
+    let new_account = Keypair::new();
+    let system_program_id = system_program::id();
+
+    let accounts = vec![
+        AccountMeta::new(payer_pubkey, true),
+        AccountMeta::new(new_account.pubkey(), true),
+        AccountMeta::new_readonly(system_program_id, false),
+    ];
+
     let mut transaction = Transaction::new_with_payer(
-        &[Instruction::new_with_bytes(program_id, &bytes, vec![])],
+        &[Instruction::new_with_bytes(program_id, &bytes, accounts)],
         Some(&keypair.pubkey()),
     );
 
-    transaction.try_sign(&[&keypair], blockhash_info).unwrap();
+    transaction
+        .try_sign(&[&keypair, &new_account], blockhash_info)
+        .unwrap();
 
     let tx_hash = connection
         .send_and_confirm_transaction(&transaction)
