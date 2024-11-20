@@ -31,22 +31,28 @@ pub fn process_instruction(
     let instruction = InstructionData::try_from_slice(instruction_data).unwrap();
 
     match instruction {
-        InstructionData::CreatePoll(poll) => create_poll(accounts, &poll)?,
+        InstructionData::CreatePoll(poll) => {
+            let accounts_iter = &mut accounts.iter();
+            let payer = next_account_info(accounts_iter)?;
+            let new_account = next_account_info(accounts_iter)?;
+            let system_program = next_account_info(accounts_iter)?;
+            create_poll(payer, new_account, system_program, &poll)?
+        }
     };
 
     Ok(())
 }
 
-fn create_poll(accounts: &[AccountInfo], poll: &Poll) -> ProgramResult {
-    let accounts_iter = &mut accounts.iter();
-    let payer = next_account_info(accounts_iter)?;
-    let new_account = next_account_info(accounts_iter)?;
-    let system_program = next_account_info(accounts_iter)?;
-
+fn create_poll<'a>(
+    payer: &AccountInfo<'a>,
+    new_account: &AccountInfo<'a>,
+    system_program: &AccountInfo<'a>,
+    poll: &Poll,
+) -> ProgramResult {
     let mut account_data = Vec::new();
     poll.serialize(&mut account_data).unwrap();
     let account_size = account_data.len() as u64;
-    let account_owner = Pubkey::from_str("B3pBndkF5cN36QZ1EqoRigRayVKRx5Dz1XMj6xXSFxBZ").unwrap();
+    let account_owner = Pubkey::from_str(std::env!("PROGRAM_ID")).unwrap();
 
     program::invoke(
         &system_instruction::create_account(
@@ -61,5 +67,9 @@ fn create_poll(accounts: &[AccountInfo], poll: &Poll) -> ProgramResult {
 
     new_account.data.borrow_mut()[..account_data.len()].copy_from_slice(&account_data);
 
+    Ok(())
+}
+
+fn vote(voter: &AccountInfo, poll: &Pubkey) -> ProgramResult {
     Ok(())
 }

@@ -23,7 +23,7 @@ struct Poll {
 }
 
 fn main() {
-    let program_id = Pubkey::from_str("B3pBndkF5cN36QZ1EqoRigRayVKRx5Dz1XMj6xXSFxBZ").unwrap();
+    let program_id = Pubkey::from_str(std::env!("PROGRAM_ID")).unwrap();
 
     let connection =
         RpcClient::new_with_commitment("http://localhost:8899", CommitmentConfig::confirmed());
