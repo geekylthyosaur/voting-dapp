@@ -1,6 +1,10 @@
 use std::str::FromStr;
 
 use borsh::BorshDeserialize;
+use common::{
+    state::{Poll, VoteType},
+    ProgramInstruction,
+};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -10,39 +14,6 @@ use solana_sdk::{
     system_instruction,
     transaction::Transaction,
 };
-use state::VoteType;
-
-mod state {
-    use borsh::{BorshDeserialize, BorshSerialize};
-
-    #[derive(BorshDeserialize, BorshSerialize, Clone, Copy, Debug, Default)]
-    pub struct Poll {
-        gm: u64,
-        gn: u64,
-    }
-
-    impl Poll {
-        pub const SIZE: usize = 16;
-    }
-
-    #[derive(BorshDeserialize, BorshSerialize, Clone, Copy, Debug)]
-    pub enum VoteType {
-        GM,
-        GN,
-    }
-}
-
-mod instruction {
-    use borsh::{BorshDeserialize, BorshSerialize};
-
-    use super::state::VoteType;
-
-    #[derive(BorshDeserialize, BorshSerialize, Debug)]
-    #[non_exhaustive]
-    pub enum Instruction {
-        Vote(VoteType),
-    }
-}
 
 fn main() {
     let vote_type = parse_args().expect("Error: expected argument GM/GN");
@@ -59,13 +30,13 @@ fn main() {
         println!("Poll does not exist, creating...");
 
         let rent_exemtion = rpc_client
-            .get_minimum_balance_for_rent_exemption(state::Poll::SIZE)
+            .get_minimum_balance_for_rent_exemption(Poll::SIZE)
             .unwrap();
         let ix_create = system_instruction::create_account(
             &payer_id,
             &poll_id,
             rent_exemtion,
-            state::Poll::SIZE as u64,
+            Poll::SIZE as u64,
             &program_id,
         );
 
@@ -80,11 +51,11 @@ fn main() {
 
         println!("Poll created: {}", poll_id);
     } else if let Ok(data) = rpc_client.get_account_data(&poll_id) {
-        let poll = state::Poll::try_from_slice(&data).unwrap();
+        let poll = Poll::try_from_slice(&data).unwrap();
         println!("{poll:?}");
     }
 
-    let vote = instruction::Instruction::Vote(vote_type);
+    let vote = ProgramInstruction::Vote(vote_type);
     let accounts = vec![AccountMeta::new(poll_id, false)];
     let ix = Instruction::new_with_borsh(program_id, &vote, accounts);
 
@@ -97,7 +68,7 @@ fn main() {
 }
 
 fn parse_args() -> Option<VoteType> {
-    if let Some(s) = std::env::args().skip(1).next().as_ref() {
+    if let Some(s) = std::env::args().nth(1).as_ref() {
         match s.as_str() {
             "gm" => Some(VoteType::GM),
             "gn" => Some(VoteType::GN),

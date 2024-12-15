@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+common = { path = "../common" }
 borsh = { version = "1.5.1", default-features = false, features = ["derive"] }
-solana-client = { version = "2.0.9", default-features = false }
-solana-sdk = { version = "2.0.9", default-features = false }
+solana-client = { version = "2.1.6", default-features = false }
+solana-sdk = { version = "2.1.6", default-features = false }
