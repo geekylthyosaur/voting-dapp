@@ -3,5 +3,9 @@ name = "common"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "common"
+crate-type = ["cdylib", "lib"]
+
 [dependencies]
 borsh = { version = "1.5.1", default-features = false, features = ["derive"] }
