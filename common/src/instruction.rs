@@ -1,9 +1,11 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 
-use super::state::VoteType;
+use crate::state::Poll;
+
+use super::state::Vote;
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
 pub enum Instruction {
-    CreatePoll { rent: u64 },
-    Vote(VoteType),
+    CreatePoll { poll: Poll, rent: u64 },
+    Vote(Vote),
 }

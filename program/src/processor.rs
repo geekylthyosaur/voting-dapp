@@ -1,6 +1,6 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use common::{
-    state::{Poll, VoteType},
+    state::{Poll, Vote},
     ProgramInstruction,
 };
 use solana_program::{
@@ -20,9 +20,9 @@ pub fn process_instruction(
     instruction: ProgramInstruction,
 ) -> ProgramResult {
     match instruction {
-        ProgramInstruction::CreatePoll { rent } => {
+        ProgramInstruction::CreatePoll { poll, rent } => {
             msg!("CreatePoll");
-            create_poll(program_id, accounts, rent)?;
+            create_poll(program_id, accounts, poll, rent)?;
         }
         ProgramInstruction::Vote(t) => {
             msg!("Vote");
@@ -33,18 +33,26 @@ pub fn process_instruction(
     Ok(())
 }
 
-fn create_poll(program_id: &Pubkey, accounts: &[AccountInfo], rent: u64) -> ProgramResult {
+fn create_poll(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    poll: Poll,
+    rent: u64,
+) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
     let payer = next_account_info(accounts_iter)?;
-    let poll = next_account_info(accounts_iter)?;
+    let poll_acc = next_account_info(accounts_iter)?;
 
-    let ix = create_poll_ix(program_id, payer.key, poll.key, rent);
-
+    let size = poll.size();
+    let ix = create_poll_ix(program_id, payer.key, poll_acc.key, rent, size);
     invoke(&ix, accounts)?;
+
+    poll.serialize(&mut *poll_acc.data.borrow_mut()).unwrap();
+
     Ok(())
 }
 
-fn vote(program_id: &Pubkey, accounts: &[AccountInfo], vote_type: VoteType) -> ProgramResult {
+fn vote(program_id: &Pubkey, accounts: &[AccountInfo], vote: Vote) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
     let poll_account = next_account_info(accounts_iter)?;
 
@@ -57,18 +65,9 @@ fn vote(program_id: &Pubkey, accounts: &[AccountInfo], vote_type: VoteType) -> P
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    if poll_account.data_len() < Poll::SIZE {
-        msg!(
-            "Poll account too small ({} < {})",
-            poll_account.data_len(),
-            Poll::SIZE
-        );
-        return Err(ProgramError::InvalidAccountData);
-    }
-
     let mut poll = Poll::try_from_slice(&poll_account.data.borrow()).unwrap();
-    poll.vote(vote_type);
-    poll.serialize(&mut &mut poll_account.data.borrow_mut()[..])
+    poll.vote(vote);
+    poll.serialize(&mut *poll_account.data.borrow_mut())
         .unwrap();
 
     Ok(())
