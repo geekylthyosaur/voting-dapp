@@ -19,7 +19,7 @@
         let optionsList = document.getElementById('poll-options');
         options.forEach(option => {
           let listItem = document.createElement('li');
-          listItem.innerText = `${option.name()} - Votes: ${option.vote_count()}`;
+          listItem.innerText = ${option.name()} - Votes: ${option.vote_count()};
           optionsList.appendChild(listItem);
         });
       })();
@@ -30,4 +30,3 @@
     <ul id="poll-options"></ul>
   </body>
 </html>
-
