@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use borsh::BorshDeserialize;
 use common::{
     state::{Poll, Vote},
@@ -19,7 +17,8 @@ use solana_sdk::{
 fn main() {
     let vote = parse_args().expect("Error: expected argument");
 
-    let program_id = Pubkey::from_str(env!("PROGRAM_ID")).unwrap();
+    let program = read_keypair_file("../program/program-id.json").unwrap();
+    let program_id = program.pubkey();
     let rpc_url = "http://localhost:8899";
     let rpc_client = RpcClient::new_with_commitment(rpc_url, CommitmentConfig::confirmed());
     let poll = read_keypair_file("./poll.json").unwrap();

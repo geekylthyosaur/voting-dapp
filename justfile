@@ -4,7 +4,7 @@ check-signer:
 deploy: check-signer
   cd program && \
   cargo build-sbf && \
-  solana program deploy ./target/deploy/dapp.so
+  solana program deploy ./target/deploy/dapp.so --program-id ./program-id.json
 
 run: deploy
   cd web && \
