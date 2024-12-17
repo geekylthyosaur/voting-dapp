@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>title</title>
-    <script>
+    <script type="module">
+      import init, { inc } from './pkg/client.js';
+
       (async () => {
-        let response = await fetch('./target/wasm32-unknown-unknown/release/client.wasm');
-        let bytes = await response.arrayBuffer();
-        let { instance } = await WebAssembly.instantiate(bytes, { });
+        await init();
 
         let count = 0;
 
@@ -16,7 +16,7 @@
         document.body.appendChild(button);
 
         button.addEventListener('click', () => {
-          count = instance.exports.inc(count);
+          count = inc(count);
           button.textContent = `Click me: ${count}`;
         });
       })();
