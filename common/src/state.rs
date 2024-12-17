@@ -1,15 +1,47 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug, Default)]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct Poll {
     title: String,
     options: Vec<PollOption>,
 }
 
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl Poll {
+    #[wasm_bindgen]
+    pub fn title(&self) -> String {
+        self.title.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn options(&self) -> Vec<PollOption> {
+        self.options.clone()
+    }
+}
+
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug)]
-struct PollOption {
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+pub struct PollOption {
     name: String,
     vote_count: u64,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl PollOption {
+    #[wasm_bindgen]
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn vote_count(&self) -> u64 {
+        self.vote_count
+    }
 }
 
 impl<S: Into<String>> From<S> for PollOption {
