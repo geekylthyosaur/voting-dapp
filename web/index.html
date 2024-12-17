@@ -2,27 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>title</title>
+    <title>Poll</title>
     <script type="module">
-      import init, { inc } from './pkg/client.js';
+      import init, { get_poll } from './pkg/client.js';
 
       (async () => {
         await init();
 
-        let count = 0;
+        let pollId = "5JGXjXMS5ToZtAaQv2GnoetyADReXE86PmDPEpCsS4mF";
+        let poll = await get_poll(pollId);
 
-        const button = document.createElement('button');
-        button.textContent = `Click me: ${count}`;
-        document.body.appendChild(button);
+        document.getElementById('poll-title').innerText = poll.title();
 
-        button.addEventListener('click', () => {
-          count = inc(count);
-          button.textContent = `Click me: ${count}`;
+        let options = poll.options();
+
+        let optionsList = document.getElementById('poll-options');
+        options.forEach(option => {
+          let listItem = document.createElement('li');
+          listItem.innerText = `${option.name()} - Votes: ${option.vote_count()}`;
+          optionsList.appendChild(listItem);
         });
       })();
     </script>
   </head>
   <body>
+    <h1 id="poll-title">Loading poll...</h1>
+    <ul id="poll-options"></ul>
   </body>
 </html>
 
