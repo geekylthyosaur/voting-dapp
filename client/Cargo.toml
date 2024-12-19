@@ -13,3 +13,5 @@ solana-client-wasm = { version = "1.18.0" }
 solana-sdk = { version = "=1.18.0", default-features = false }
 wasm-bindgen = { version = "0.2.99", default-features = false }
 wasm-bindgen-futures = { version = "0.4.49", default-features = false }
+serde_json = { version = "1.0.133", default-features = false }
+console_error_panic_hook = "0.1.7"
