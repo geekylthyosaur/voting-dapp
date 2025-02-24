@@ -8,10 +8,8 @@ deploy: check-signer
 
 run: deploy
   cd client && \
-  wasm-pack build --target web && \
+  wasm-pack build --target web --dev && \
   python -m http.server -b 127.0.0.1 3400 & \
   PID=$! && \
-  xdg-open http://127.0.0.1:3400 && \
   trap "kill $PID" EXIT && \
   wait $PID
-
