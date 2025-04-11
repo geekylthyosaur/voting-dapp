@@ -5,108 +5,276 @@
  * IDL can be found at `target/idl/votingdapp.json`.
  */
 export type Votingdapp = {
-  address: 'coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF'
-  metadata: {
-    name: 'votingdapp'
-    version: '0.1.0'
-    spec: '0.1.0'
-    description: 'Created with Anchor'
-  }
-  instructions: [
+  "address": "2VmZhuN5W39i28vzqPiJzV9WovoegLghrdJrzSwsS7at",
+  "metadata": {
+    "name": "votingdapp",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
     {
-      name: 'close'
-      discriminator: [98, 165, 201, 177, 108, 65, 206, 96]
-      accounts: [
+      "name": "createPoll",
+      "discriminator": [
+        182,
+        171,
+        112,
+        238,
+        6,
+        219,
+        14,
+        110
+      ],
+      "accounts": [
         {
-          name: 'payer'
-          writable: true
-          signer: true
+          "name": "signer",
+          "writable": true,
+          "signer": true
         },
         {
-          name: 'votingdapp'
-          writable: true
-        },
-      ]
-      args: []
-    },
-    {
-      name: 'decrement'
-      discriminator: [106, 227, 168, 59, 248, 27, 150, 101]
-      accounts: [
-        {
-          name: 'votingdapp'
-          writable: true
-        },
-      ]
-      args: []
-    },
-    {
-      name: 'increment'
-      discriminator: [11, 18, 104, 9, 104, 174, 59, 33]
-      accounts: [
-        {
-          name: 'votingdapp'
-          writable: true
-        },
-      ]
-      args: []
-    },
-    {
-      name: 'initialize'
-      discriminator: [175, 175, 109, 31, 13, 152, 155, 237]
-      accounts: [
-        {
-          name: 'payer'
-          writable: true
-          signer: true
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
         },
         {
-          name: 'votingdapp'
-          writable: true
-          signer: true
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
         },
         {
-          name: 'systemProgram'
-          address: '11111111111111111111111111111111'
+          "name": "description",
+          "type": "string"
         },
-      ]
-      args: []
-    },
-    {
-      name: 'set'
-      discriminator: [198, 51, 53, 241, 116, 29, 126, 194]
-      accounts: [
         {
-          name: 'votingdapp'
-          writable: true
-        },
-      ]
-      args: [
-        {
-          name: 'value'
-          type: 'u8'
-        },
+          "name": "candidates",
+          "type": {
+            "vec": "string"
+          }
+        }
       ]
     },
-  ]
-  accounts: [
     {
-      name: 'votingdapp'
-      discriminator: [255, 176, 4, 245, 188, 253, 124, 25]
+      "name": "vote",
+      "discriminator": [
+        227,
+        110,
+        155,
+        23,
+        136,
+        126,
+        172,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "candidate",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "poll",
+      "discriminator": [
+        110,
+        234,
+        167,
+        188,
+        231,
+        136,
+        153,
+        111
+      ]
     },
-  ]
-  types: [
     {
-      name: 'votingdapp'
-      type: {
-        kind: 'struct'
-        fields: [
+      "name": "voter",
+      "discriminator": [
+        241,
+        93,
+        35,
+        191,
+        254,
+        147,
+        17,
+        202
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "pollAlreadyExists",
+      "msg": "Poll already exists"
+    },
+    {
+      "code": 6001,
+      "name": "alreadyVoted",
+      "msg": "alreadyVoted"
+    },
+    {
+      "code": 6002,
+      "name": "candidateNotFound",
+      "msg": "Candidate not found"
+    },
+    {
+      "code": 6003,
+      "name": "invalidPollName",
+      "msg": "Invalid poll name"
+    },
+    {
+      "code": 6004,
+      "name": "invalidPollDescription",
+      "msg": "Invalid poll description"
+    },
+    {
+      "code": 6005,
+      "name": "invalidCandidateName",
+      "msg": "Invalid candidate name"
+    },
+    {
+      "code": 6006,
+      "name": "invalidCandidatesCount",
+      "msg": "Invalid candidates count"
+    }
+  ],
+  "types": [
+    {
+      "name": "candidate",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: 'count'
-            type: 'u8'
+            "name": "name",
+            "type": "string"
           },
+          {
+            "name": "votesCount",
+            "type": "u64"
+          }
         ]
       }
     },
+    {
+      "name": "poll",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "candidates",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "candidate"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "voter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "pubkey"
+          }
+        ]
+      }
+    }
   ]
-}
+};

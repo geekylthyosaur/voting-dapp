@@ -1,5 +1,5 @@
 {
-  "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
+  "address": "2VmZhuN5W39i28vzqPiJzV9WovoegLghrdJrzSwsS7at",
   "metadata": {
     "name": "votingdapp",
     "version": "0.1.0",
@@ -8,96 +8,264 @@
   },
   "instructions": [
     {
-      "name": "close",
-      "discriminator": [98, 165, 201, 177, 108, 65, 206, 96],
+      "name": "create_poll",
+      "discriminator": [
+        182,
+        171,
+        112,
+        238,
+        6,
+        219,
+        14,
+        110
+      ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "signer",
           "writable": true,
           "signer": true
         },
         {
-          "name": "votingdapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "decrement",
-      "discriminator": [106, 227, 168, 59, 248, 27, 150, 101],
-      "accounts": [
-        {
-          "name": "votingdapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "increment",
-      "discriminator": [11, 18, 104, 9, 104, 174, 59, 33],
-      "accounts": [
-        {
-          "name": "votingdapp",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
-      "accounts": [
-        {
-          "name": "payer",
+          "name": "poll",
           "writable": true,
-          "signer": true
-        },
-        {
-          "name": "votingdapp",
-          "writable": true,
-          "signer": true
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
         },
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "candidates",
+          "type": {
+            "vec": "string"
+          }
+        }
+      ]
     },
     {
-      "name": "set",
-      "discriminator": [198, 51, 53, 241, 116, 29, 126, 194],
+      "name": "vote",
+      "discriminator": [
+        227,
+        110,
+        155,
+        23,
+        136,
+        126,
+        172,
+        25
+      ],
       "accounts": [
         {
-          "name": "votingdapp",
-          "writable": true
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "value",
-          "type": "u8"
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "candidate",
+          "type": "string"
         }
       ]
     }
   ],
   "accounts": [
     {
-      "name": "Votingdapp",
-      "discriminator": [255, 176, 4, 245, 188, 253, 124, 25]
+      "name": "Poll",
+      "discriminator": [
+        110,
+        234,
+        167,
+        188,
+        231,
+        136,
+        153,
+        111
+      ]
+    },
+    {
+      "name": "Voter",
+      "discriminator": [
+        241,
+        93,
+        35,
+        191,
+        254,
+        147,
+        17,
+        202
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "PollAlreadyExists",
+      "msg": "Poll already exists"
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyVoted",
+      "msg": "AlreadyVoted"
+    },
+    {
+      "code": 6002,
+      "name": "CandidateNotFound",
+      "msg": "Candidate not found"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidPollName",
+      "msg": "Invalid poll name"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidPollDescription",
+      "msg": "Invalid poll description"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidCandidateName",
+      "msg": "Invalid candidate name"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidCandidatesCount",
+      "msg": "Invalid candidates count"
     }
   ],
   "types": [
     {
-      "name": "Votingdapp",
+      "name": "Candidate",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "count",
-            "type": "u8"
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "votes_count",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Poll",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "candidates",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Candidate"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Voter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "pubkey"
           }
         ]
       }
