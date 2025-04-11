@@ -20,7 +20,9 @@ export function useVotingdappProgram() {
 
   const accounts = useQuery({
     queryKey: ['votingdapp', 'all', { cluster }],
-    queryFn: () => program.account.votingdapp.all(),
+    queryFn: () => {
+      return program.account.poll.all()
+    },
   })
 
   const getProgramAccount = useQuery({
@@ -28,15 +30,50 @@ export function useVotingdappProgram() {
     queryFn: () => connection.getParsedAccountInfo(programId),
   })
 
-  const initialize = useMutation({
-    mutationKey: ['votingdapp', 'initialize', { cluster }],
-    mutationFn: (keypair: Keypair) =>
-      program.methods.initialize().accounts({ votingdapp: keypair.publicKey }).signers([keypair]).rpc(),
+  const createPollMutation = useMutation({
+    mutationKey: ['votingdapp', 'createPoll', { cluster }],
+    mutationFn: ({ name, description, candidates }: { name: string, description: string, candidates: string[] }) => {
+      return program.methods
+        .createPoll(name, description, candidates)
+        .accounts({ signer: provider.wallet.publicKey })
+        .rpc()
+    },
     onSuccess: (signature) => {
       transactionToast(signature)
       return accounts.refetch()
     },
-    onError: () => toast.error('Failed to initialize account'),
+    onError: (error: any) => {
+      console.log({ error })
+      if (error.error.errorCode.code != null) {
+        if (error.error.errorCode.code === "InvalidPollName") {
+          toast.error("Poll name is invalid")
+          return;
+        }
+      }
+    }
+  })
+
+  const voteMutation = useMutation({
+    mutationKey: ['votingdapp', 'vote', { cluster }],
+    mutationFn: ({ name, candidate }: { name: string, candidate: string }) => program.methods
+      .vote(name, candidate)
+      .accounts({
+        signer: provider.wallet.publicKey,
+      })
+      .rpc(),
+    onSuccess: (signature) => {
+      transactionToast(signature)
+      return accounts.refetch()
+    },
+    onError: (error: any) => {
+      console.log({ error })
+      if (error.error.errorCode.code != null) {
+        if (error.error.errorCode.code === "AlreadyVoted") { //ConstraintSeeds
+          toast.error("You already voted in this poll")
+          return;
+        }
+      }
+    }
   })
 
   return {
@@ -44,61 +81,21 @@ export function useVotingdappProgram() {
     programId,
     accounts,
     getProgramAccount,
-    initialize,
+    createPollMutation,
+    voteMutation,
   }
 }
 
 export function useVotingdappProgramAccount({ account }: { account: PublicKey }) {
   const { cluster } = useCluster()
-  const transactionToast = useTransactionToast()
-  const { program, accounts } = useVotingdappProgram()
+  const { program } = useVotingdappProgram()
 
   const accountQuery = useQuery({
     queryKey: ['votingdapp', 'fetch', { cluster, account }],
-    queryFn: () => program.account.votingdapp.fetch(account),
-  })
-
-  const closeMutation = useMutation({
-    mutationKey: ['votingdapp', 'close', { cluster, account }],
-    mutationFn: () => program.methods.close().accounts({ votingdapp: account }).rpc(),
-    onSuccess: (tx) => {
-      transactionToast(tx)
-      return accounts.refetch()
-    },
-  })
-
-  const decrementMutation = useMutation({
-    mutationKey: ['votingdapp', 'decrement', { cluster, account }],
-    mutationFn: () => program.methods.decrement().accounts({ votingdapp: account }).rpc(),
-    onSuccess: (tx) => {
-      transactionToast(tx)
-      return accountQuery.refetch()
-    },
-  })
-
-  const incrementMutation = useMutation({
-    mutationKey: ['votingdapp', 'increment', { cluster, account }],
-    mutationFn: () => program.methods.increment().accounts({ votingdapp: account }).rpc(),
-    onSuccess: (tx) => {
-      transactionToast(tx)
-      return accountQuery.refetch()
-    },
-  })
-
-  const setMutation = useMutation({
-    mutationKey: ['votingdapp', 'set', { cluster, account }],
-    mutationFn: (value: number) => program.methods.set(value).accounts({ votingdapp: account }).rpc(),
-    onSuccess: (tx) => {
-      transactionToast(tx)
-      return accountQuery.refetch()
-    },
+    queryFn: () => program.account.poll.fetch(account),
   })
 
   return {
     accountQuery,
-    closeMutation,
-    decrementMutation,
-    incrementMutation,
-    setMutation,
   }
 }

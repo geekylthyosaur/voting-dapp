@@ -16,7 +16,7 @@ export default function VotingdappFeature() {
       <AppHero
         title="Votingdapp"
         subtitle={
-          'Create a new account by clicking the "Create" button. The state of a account is stored on-chain and can be manipulated by calling the program\'s methods (increment, decrement, set, and close).'
+          'Create a new poll by clicking the "Create" button. The state of a poll is stored on-chain.'
         }
       >
         <p className="mb-6">
