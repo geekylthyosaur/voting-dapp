@@ -14,6 +14,7 @@ pub struct Poll {
     name: String,
     #[max_len(POLL_DESCRIPTION_MAX_LEN)]
     description: String,
+    timestamp: u64,
     #[max_len(POLL_CANDIDATES_MAX_LEN)]
     candidates: Vec<Candidate>,
 }
@@ -23,6 +24,7 @@ impl Poll {
         &mut self,
         name: String,
         description: String,
+        timestamp: u64,
         candidates: Vec<String>,
     ) -> Result<()> {
         self.name = if name.len() > POLL_NAME_MAX_LEN || name.is_empty() {
@@ -36,6 +38,8 @@ impl Poll {
         } else {
             description
         };
+
+        self.timestamp = timestamp;
 
         let candidates = candidates
             .into_iter()

@@ -61,6 +61,10 @@
           "type": "string"
         },
         {
+          "name": "timestamp",
+          "type": "u64"
+        },
+        {
           "name": "candidates",
           "type": {
             "vec": "string"
@@ -244,6 +248,10 @@
           {
             "name": "description",
             "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "u64"
           },
           {
             "name": "candidates",

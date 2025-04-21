@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
+import BN from 'bn.js'
 
 export function useVotingdappProgram() {
   const { connection } = useConnection()
@@ -32,9 +33,9 @@ export function useVotingdappProgram() {
 
   const createPollMutation = useMutation({
     mutationKey: ['votingdapp', 'createPoll', { cluster }],
-    mutationFn: ({ name, description, candidates }: { name: string, description: string, candidates: string[] }) => {
+    mutationFn: ({ name, description, timestamp, candidates }: { name: string, description: string, timestamp: BN, candidates: string[] }) => {
       return program.methods
-        .createPoll(name, description, candidates)
+        .createPoll(name, description, timestamp, candidates)
         .accounts({ signer: provider.wallet.publicKey })
         .rpc()
     },

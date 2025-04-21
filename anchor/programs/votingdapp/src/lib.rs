@@ -19,9 +19,10 @@ pub mod votingdapp {
         ctx: Context<CreatePoll>,
         name: String,
         description: String,
+        timestamp: u64,
         candidates: Vec<String>,
     ) -> Result<()> {
-        handle_create_poll(ctx, name, description, candidates)
+        handle_create_poll(ctx, name, description, timestamp, candidates)
     }
 
     pub fn vote(ctx: Context<Vote>, name: String, candidate: String) -> Result<()> {

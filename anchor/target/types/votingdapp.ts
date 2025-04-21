@@ -67,6 +67,10 @@ export type Votingdapp = {
           "type": "string"
         },
         {
+          "name": "timestamp",
+          "type": "u64"
+        },
+        {
           "name": "candidates",
           "type": {
             "vec": "string"
@@ -250,6 +254,10 @@ export type Votingdapp = {
           {
             "name": "description",
             "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "u64"
           },
           {
             "name": "candidates",

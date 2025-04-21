@@ -23,13 +23,14 @@ pub fn handle_create_poll(
     ctx: Context<CreatePoll>,
     name: String,
     description: String,
+    timestamp: u64,
     candidates: Vec<String>,
 ) -> Result<()> {
     let account = &mut ctx.accounts.poll;
 
     require!(account.is_empty(), Error::PollAlreadyExists);
 
-    account.create(name, description, candidates)?;
+    account.create(name, description, timestamp, candidates)?;
 
     Ok(())
 }
