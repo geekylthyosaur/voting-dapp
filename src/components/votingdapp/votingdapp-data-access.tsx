@@ -49,6 +49,10 @@ export function useVotingdappProgram() {
           toast.error("Poll name is invalid")
           return;
         }
+        if (error.error.errorCode.code === "PollAlreadyExists") {
+          toast.error("This poll already exists")
+          return;
+        }
       }
     }
   })

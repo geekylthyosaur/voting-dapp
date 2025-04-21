@@ -22,9 +22,11 @@ export default function VotingdappFeature() {
         <p className="mb-6">
           <ExplorerLink path={`account/${programId}`} label={ellipsify(programId.toString())} />
         </p>
-        <VotingdappCreate />
+        <div className="mb-6">
+          <VotingdappCreate />
+        </div>
+        <VotingdappList />
       </AppHero>
-      <VotingdappList />
     </div>
   ) : (
     <div className="max-w-4xl mx-auto">

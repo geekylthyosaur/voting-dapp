@@ -8,18 +8,128 @@ import { useVotingdappProgram, useVotingdappProgramAccount } from './votingdapp-
 import BN from 'bn.js'
 
 export function VotingdappCreate() {
-  const { createPollMutation } = useVotingdappProgram()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { name, description, candidates } = { name: 'My poll', description: 'This is my poll', candidates: ['A', 'B'] }
+  const openModal = () => {
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
 
   return (
-    <button
-      className="btn btn-xs lg:btn-md btn-primary"
-      onClick={() => createPollMutation.mutateAsync({ name, description, candidates })}
-      disabled={createPollMutation.isPending}
-    >
-      Create Poll {createPollMutation.isPending && '...'}
-    </button>
+    <div>
+      <button
+        className="btn btn-xs lg:btn-md btn-primary"
+        onClick={openModal}
+      >
+        Create Poll
+      </button>
+      {isModalOpen && <VotingdappCreatePopup onClose={closeModal} />}
+    </div>
+  )
+}
+
+export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
+  const { createPollMutation } = useVotingdappProgram()
+
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [candidates, setCandidates] = useState<string[]>([""])
+  const [error, setError] = useState("")
+
+  const isValid = () => {
+    if (!name.trim()) return "Name is required"
+    if (new TextEncoder().encode(name).length > 64) return "Name is too long"
+    if (!description.trim()) return "Description is required"
+    if (new TextEncoder().encode(description).length > 64) return "Description is too long"
+    if (candidates.length === 0) return "At least one candidate is required"
+    if (candidates.length > 8) return "Maximum 8 candidates allowed"
+    for (const c of candidates) {
+      if (!c.trim()) return "Candidate name can't be empty"
+      if (new TextEncoder().encode(c).length > 32) return "Candidate name too long"
+    }
+    return ""
+  }
+
+  const handleCreate = async () => {
+    const validationError = isValid()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    await createPollMutation.mutateAsync({ name, description, candidates })
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
+        <input
+          className="w-full border p-2 rounded"
+          placeholder="Poll Name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+        <input
+          className="w-full border p-2 rounded"
+          placeholder="Description"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+        />
+        {candidates.map((c, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              className="flex-1 border p-2 rounded"
+              placeholder={`Candidate ${i + 1}`}
+              value={c}
+              onChange={e => {
+                const copy = [...candidates]
+                copy[i] = e.target.value
+                setCandidates(copy)
+              }}
+            />
+            {candidates.length > 1 && (
+              <button
+                className="text-red-500 font-bold"
+                onClick={() => setCandidates(candidates.filter((_, j) => j !== i))}
+                title="Remove candidate"
+              >
+                ×
+              </button>
+            )}
+
+          </div>
+        ))}
+        <div className="flex justify-between">
+          {candidates.length < 8 && (
+            <button
+              className="px-2 py-1 bg-gray-300 rounded"
+              onClick={() => setCandidates([...candidates, ""])}
+            >
+              Add Candidate
+            </button>
+          )}
+        </div>
+        {error && <div className="text-red-600 text-sm">{error}</div>}
+        <div className="flex justify-between mt-6 space-x-4">
+          <button
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50"
+            onClick={handleCreate}
+            disabled={createPollMutation.isPending}
+          >
+            Create Poll {createPollMutation.isPending && '...'}
+          </button>
+          <button
+            className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -78,13 +188,14 @@ function VotingdappCard({ account }: { account: PublicKey }) {
   return accountQuery.isLoading ? (
     <span className="loading loading-spinner loading-lg"></span>
   ) : (
-    <div className="card card-bordered border-base-300 border-4">
-      <div className="card-body items-center text-center">
-        <div className="space-y-6">
-          <h2 className="card-title justify-center text-3xl cursor-pointer" onClick={openModal}>
-            {name}
-          </h2>
-        </div>
+    <div className="card border-2 border-gray-300 rounded-xl shadow-md p-4 w-full max-w-md mx-auto">
+      <div className="flex flex-col items-center space-y-4 text-center">
+        <h2
+          className="text-2xl font-semibold text-blue-700 hover:underline cursor-pointer"
+          onClick={openModal}
+        >
+          {name}
+        </h2>
       </div>
       {isModalOpen && (
         <VotingdappCardPopup
@@ -94,6 +205,7 @@ function VotingdappCard({ account }: { account: PublicKey }) {
       )}
     </div>
   )
+
 }
 
 function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose: () => void }) {
@@ -127,15 +239,21 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-md shadow-lg w-[75vw] max-w-screen-lg">
-        <h2 className="text-2xl font-bold">{name}</h2>
-        <p>{description}</p>
-        <div className="space-y-4 mt-4">
-          <h3 className="text-xl font-semibold">Candidates:</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+        <h2 className="text-2xl font-bold text-center">{name}</h2>
+        <p className="text-gray-700 text-center mt-2">{description}</p>
+        <div className="mt-6 space-y-4">
+          <h3 className="text-lg font-semibold">Candidates</h3>
           {candidates?.map((candidate: { name: string; votesCount: BN }) => (
-            <div key={candidate.name} className='grid md:grid-cols-3'>
-              {candidate.name}: {candidate.votesCount.toString()} votes
+            <div
+              key={candidate.name}
+              className="flex items-center justify-between border p-3 rounded-md"
+            >
+              <div>
+                <p className="font-medium">{candidate.name}</p>
+                <p className="text-sm text-gray-500">{candidate.votesCount.toString()} votes</p>
+              </div>
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => handleVoteClick(candidate)}
@@ -150,10 +268,13 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
             </div>
           ))}
         </div>
-        <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md" onClick={onClose}>
+        <button
+          className="mt-6 w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+          onClick={onClose}
+        >
           Close
         </button>
       </div>
-    </div >
+    </div>
   )
 }
