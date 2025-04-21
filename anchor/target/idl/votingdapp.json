@@ -191,30 +191,35 @@
     {
       "code": 6001,
       "name": "AlreadyVoted",
-      "msg": "AlreadyVoted"
+      "msg": "Already voted"
     },
     {
       "code": 6002,
+      "name": "VotingEnded",
+      "msg": "Voting ended"
+    },
+    {
+      "code": 6003,
       "name": "CandidateNotFound",
       "msg": "Candidate not found"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "InvalidPollName",
       "msg": "Invalid poll name"
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "InvalidPollDescription",
       "msg": "Invalid poll description"
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "InvalidCandidateName",
       "msg": "Invalid candidate name"
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "InvalidCandidatesCount",
       "msg": "Invalid candidates count"
     }

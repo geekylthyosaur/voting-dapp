@@ -197,30 +197,35 @@ export type Votingdapp = {
     {
       "code": 6001,
       "name": "alreadyVoted",
-      "msg": "alreadyVoted"
+      "msg": "Already voted"
     },
     {
       "code": 6002,
+      "name": "votingEnded",
+      "msg": "Voting ended"
+    },
+    {
+      "code": 6003,
       "name": "candidateNotFound",
       "msg": "Candidate not found"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "invalidPollName",
       "msg": "Invalid poll name"
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "invalidPollDescription",
       "msg": "Invalid poll description"
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "invalidCandidateName",
       "msg": "Invalid candidate name"
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "invalidCandidatesCount",
       "msg": "Invalid candidates count"
     }

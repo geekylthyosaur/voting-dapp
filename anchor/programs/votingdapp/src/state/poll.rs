@@ -64,6 +64,11 @@ impl Poll {
         Ok(())
     }
 
+    pub fn is_open(&self) -> Result<bool> {
+        let now = Clock::get()?.unix_timestamp;
+        Ok(now as u64 <= self.timestamp)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.name.is_empty() && self.description.is_empty() && self.candidates.is_empty()
     }

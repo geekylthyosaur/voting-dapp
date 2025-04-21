@@ -4,8 +4,10 @@ use anchor_lang::error_code;
 pub enum Error {
     #[msg("Poll already exists")]
     PollAlreadyExists,
-    #[msg(AlreadyVoted)]
+    #[msg("Already voted")]
     AlreadyVoted,
+    #[msg("Voting ended")]
+    VotingEnded,
     #[msg("Candidate not found")]
     CandidateNotFound,
     #[msg("Invalid poll name")]

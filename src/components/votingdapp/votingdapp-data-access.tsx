@@ -73,8 +73,12 @@ export function useVotingdappProgram() {
     onError: (error: any) => {
       console.log({ error })
       if (error.error.errorCode.code != null) {
-        if (error.error.errorCode.code === "AlreadyVoted") { //ConstraintSeeds
+        if (error.error.errorCode.code === "AlreadyVoted") {
           toast.error("You already voted in this poll")
+          return;
+        }
+        if (error.error.errorCode.code === "VotingEnded") {
+          toast.error("Voting has ended")
           return;
         }
       }

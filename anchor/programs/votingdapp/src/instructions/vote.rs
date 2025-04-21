@@ -31,6 +31,7 @@ pub fn handle_vote(ctx: Context<Vote>, candidate: String) -> Result<()> {
     let voter = &mut ctx.accounts.voter;
 
     require!(voter.id != signer.key(), Error::AlreadyVoted);
+    require!(poll.is_open()?, Error::VotingEnded);
 
     poll.vote(candidate)?;
 
