@@ -27,10 +27,11 @@ pub fn handle_create_poll(
     candidates: Vec<String>,
 ) -> Result<()> {
     let account = &mut ctx.accounts.poll;
+    let creator = ctx.accounts.signer.key;
 
     require!(account.is_empty(), Error::PollAlreadyExists);
 
-    account.create(name, description, timestamp, candidates)?;
+    account.create(*creator, name, description, timestamp, candidates)?;
 
     Ok(())
 }

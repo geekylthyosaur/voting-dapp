@@ -10,6 +10,7 @@ const POLL_CANDIDATES_MAX_LEN: usize = 8;
 #[account]
 #[derive(InitSpace)]
 pub struct Poll {
+    creator: Pubkey,
     #[max_len(POLL_NAME_MAX_LEN)]
     name: String,
     #[max_len(POLL_DESCRIPTION_MAX_LEN)]
@@ -22,11 +23,13 @@ pub struct Poll {
 impl Poll {
     pub fn create(
         &mut self,
+        creator: Pubkey,
         name: String,
         description: String,
         timestamp: u64,
         candidates: Vec<String>,
     ) -> Result<()> {
+        self.creator = creator;
         self.name = if name.len() > POLL_NAME_MAX_LEN || name.is_empty() {
             return Err(Error::InvalidPollName)?;
         } else {

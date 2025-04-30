@@ -1,11 +1,38 @@
 'use client'
 
 import { Keypair, PublicKey } from '@solana/web3.js'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { useMemo, useState, useEffect } from 'react'
 import { ellipsify } from '../ui/ui-layout'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { useVotingdappProgram, useVotingdappProgramAccount } from './votingdapp-data-access'
 import BN from 'bn.js'
+
+function useCountdown(targetTimestamp: number | undefined) {
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+
+  useEffect(() => {
+    if (!targetTimestamp) return
+
+    const update = () => {
+      const now = Math.floor(Date.now() / 1000)
+      setTimeLeft(Math.max(0, targetTimestamp - now))
+    }
+
+    update()
+    const interval = setInterval(update, 1000)
+
+    return () => clearInterval(interval)
+  }, [targetTimestamp])
+
+  return timeLeft
+}
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}m ${s}s`
+}
 
 export function VotingdappCreate() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -109,7 +136,6 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
             <option value="day">Days</option>
           </select>
         </div>
-
 
         {candidates.map((c, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -238,7 +264,6 @@ function VotingdappCard({ account }: { account: PublicKey }) {
       )}
     </div>
   )
-
 }
 
 function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose: () => void }) {
@@ -247,38 +272,19 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
 
   type LoadingState = { [key: string]: boolean };
   const [loadingState, setLoadingState] = useState<LoadingState>({});
+  const [isEditing, setIsEditing] = useState(false)
+
+  const { publicKey } = useWallet()
+  const isCreator = useMemo(() => {
+    const creator = accountQuery.data?.creator?.toString()
+    return creator && publicKey ? creator === publicKey.toBase58() : false
+  }, [accountQuery.data?.creator, publicKey])
 
   const name = useMemo(() => accountQuery.data?.name, [accountQuery.data?.name])
   const description = useMemo(() => accountQuery.data?.description, [accountQuery.data?.description])
   const timestamp = accountQuery.data?.timestamp?.toNumber()
 
-  const useCountdown = (targetTimestamp: number | undefined) => {
-    const [timeLeft, setTimeLeft] = useState<number>(0)
-
-    useEffect(() => {
-      if (!targetTimestamp) return
-
-      const update = () => {
-        const now = Math.floor(Date.now() / 1000)
-        setTimeLeft(Math.max(0, targetTimestamp - now))
-      }
-
-      update()
-      const interval = setInterval(update, 1000)
-
-      return () => clearInterval(interval)
-    }, [targetTimestamp])
-
-    return timeLeft
-  }
-
   const timeLeft = useCountdown(timestamp)
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${m}m ${s}s`
-  }
 
   const candidates = useMemo(() => accountQuery.data?.candidates, [accountQuery.data?.candidates])
 
@@ -303,45 +309,79 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold text-center">{name}</h2>
-        <p className="text-gray-700 text-center mt-2">
-          {description}
-          <div className="text-gray-600 text-sm">
-            {timeLeft === 0 ? 'Voting has ended' : `Time left: ${formatTime(timeLeft)}`}
-          </div>
-        </p>
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-semibold">Candidates</h3>
-          {candidates?.map((candidate: { name: string; votesCount: BN }) => (
-            <div
-              key={candidate.name}
-              className="flex items-center justify-between border p-3 rounded-md"
-            >
-              <div>
-                <p className="font-medium">{candidate.name}</p>
-                <p className="text-sm text-gray-500">{candidate.votesCount.toString()} votes</p>
+      <div className="bg-white rounded-xl w-full max-w-md shadow-lg relative overflow-hidden">
+        <div className="flex w-[200%] transition-transform duration-500 ease-in-out" style={{ transform: isEditing ? 'translateX(-50%)' : 'translateX(0)' }}>
+          <div className="w-1/2 p-6">
+            <h2 className="text-2xl font-bold text-center">{name}</h2>
+            <p className="text-gray-700 text-center mt-2">
+              {description}
+              <div className="text-gray-600 text-sm">
+                {timeLeft === 0 ? 'Voting has ended' : `Time left: ${formatTime(timeLeft)}`}
               </div>
+            </p>
+            <div className="mt-6 space-y-4">
+              <h3 className="text-lg font-semibold">Candidates</h3>
+              {candidates?.map((candidate: { name: string; votesCount: BN }) => (
+                <div
+                  key={candidate.name}
+                  className="flex items-center justify-between border p-3 rounded-md"
+                >
+                  <div>
+                    <p className="font-medium">{candidate.name}</p>
+                    <p className="text-sm text-gray-500">{candidate.votesCount.toString()} votes</p>
+                  </div>
+                  <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => handleVoteClick(candidate)}
+                    disabled={loadingState[candidate.name] || timeLeft === 0}
+                  >
+                    {loadingState[candidate.name] ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      "Vote"
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+            {isCreator && (
               <button
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handleVoteClick(candidate)}
-                disabled={loadingState[candidate.name] || timeLeft === 0}
+                className="mt-4 w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                onClick={() => setIsEditing(true)}
               >
-                {loadingState[candidate.name] ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Vote"
-                )}
+                Edit Poll
+              </button>
+            )}
+          </div>
+
+          <div className="w-1/2 p-6">
+            <div className="flex items-center mb-6">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="text-lg bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full px-3 py-1"
+              >
+                ←
               </button>
             </div>
-          ))}
+            <div className="space-y-4">
+              {/* TODO */}
+            </div>
+            <button
+              className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              onClick={() => setIsEditing(false)}
+            >
+              Save
+            </button>
+          </div>
         </div>
-        <button
-          className="mt-6 w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
-          onClick={onClose}
-        >
-          Close
-        </button>
+        <div className="p-6">
+          <button
+            className="mt-6 w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   )

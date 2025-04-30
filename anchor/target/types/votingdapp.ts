@@ -253,6 +253,10 @@ export type Votingdapp = {
         "kind": "struct",
         "fields": [
           {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
             "name": "name",
             "type": "string"
           },
