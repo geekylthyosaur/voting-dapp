@@ -34,6 +34,45 @@ function formatTime(seconds: number) {
   return `${m}m ${s}s`
 }
 
+function useEditPoll() {
+  const [error, setError] = useState("")
+  const [duration, setDuration] = useState("")
+  const [durationUnit, setDurationUnit] = useState("min")
+
+  const isValid = () => {
+    const durationValue = parseInt(duration)
+    if (isNaN(durationValue) || durationValue < 1) return "Duration must be greater than 0"
+    return ""
+  }
+
+  const handleEdit = async () => {
+    const validationError = isValid()
+    if (validationError) {
+      setError(validationError)
+      return false
+    } else {
+      setError("")
+    }
+
+    const durationValue = parseInt(duration)
+    let durationInSeconds = durationValue * 60
+    if (durationUnit === "hour") durationInSeconds *= 60
+    if (durationUnit === "day") durationInSeconds *= 60 * 60 * 24
+
+    const timestamp = new BN(Math.floor(Date.now() / 1000) + durationInSeconds)
+    return timestamp
+  }
+
+  return {
+    error,
+    duration,
+    setDuration,
+    durationUnit,
+    setDurationUnit,
+    handleEdit
+  }
+}
+
 export function VotingdappCreate() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -270,48 +309,80 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
   const { voteMutation } = useVotingdappProgram()
   const { accountQuery } = useVotingdappProgramAccount({ account })
 
-  type LoadingState = { [key: string]: boolean };
-  const [loadingState, setLoadingState] = useState<LoadingState>({});
-  const [isEditing, setIsEditing] = useState(false)
-
+  type LoadingState = { [key: string]: boolean }
+  const [loadingState, setLoadingState] = useState<LoadingState>({})
+  const [viewMode, setViewMode] = useState<'main' | 'edit' | 'results'>('main')
   const { publicKey } = useWallet()
+
   const isCreator = useMemo(() => {
     const creator = accountQuery.data?.creator?.toString()
     return creator && publicKey ? creator === publicKey.toBase58() : false
   }, [accountQuery.data?.creator, publicKey])
 
-  const name = useMemo(() => accountQuery.data?.name, [accountQuery.data?.name])
+  const name = useMemo(() => accountQuery.data?.name ?? '', [accountQuery.data?.name])
   const description = useMemo(() => accountQuery.data?.description, [accountQuery.data?.description])
   const timestamp = accountQuery.data?.timestamp?.toNumber()
-
   const timeLeft = useCountdown(timestamp)
-
   const candidates = useMemo(() => accountQuery.data?.candidates, [accountQuery.data?.candidates])
+
+  const {
+    error,
+    duration,
+    setDuration,
+    durationUnit,
+    setDurationUnit,
+    handleEdit
+  } = useEditPoll()
 
   const handleVoteClick = async (candidate: { name: string; votesCount: BN }) => {
     setLoadingState((prevState) => ({
       ...prevState,
       [candidate.name]: true,
-    }));
+    }))
 
     try {
-      await voteMutation.mutateAsync({ name: name, candidate: candidate.name });
-      await accountQuery.refetch();
+      await voteMutation.mutateAsync({ name: name, candidate: candidate.name })
+      await accountQuery.refetch()
     } catch (e) {
-      console.error(e);
+      console.error(e)
     } finally {
       setLoadingState((prevState) => ({
         ...prevState,
         [candidate.name]: false,
-      }));
+      }))
+    }
+  }
+
+  const onSaveEdit = async () => {
+    const timestamp = await handleEdit()
+    if (timestamp) {
+      // await editPollMutation.mutateAsync({ timestamp })
+      setViewMode('main')
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-xl w-full max-w-md shadow-lg relative overflow-hidden">
-        <div className="flex w-[200%] transition-transform duration-500 ease-in-out" style={{ transform: isEditing ? 'translateX(-50%)' : 'translateX(0)' }}>
-          <div className="w-1/2 p-6">
+        <div
+          className="flex w-[300%] transition-transform duration-500 ease-in-out"
+          style={{
+            transform: viewMode === 'edit' ? 'translateX(0)' :
+              viewMode === 'main' ? 'translateX(-33.33%)' :
+                'translateX(-66.66%)'
+          }}
+        >
+          <PollEditView
+            onSave={onSaveEdit}
+            onBack={() => setViewMode('main')}
+            error={error}
+            duration={duration}
+            setDuration={setDuration}
+            durationUnit={durationUnit}
+            setDurationUnit={setDurationUnit}
+          />
+
+          <div className="w-full p-6" style={{ flex: '0 0 33.33%' }}>
             <h2 className="text-2xl font-bold text-center">{name}</h2>
             <p className="text-gray-700 text-center mt-2">
               {description}
@@ -344,44 +415,162 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
                 </div>
               ))}
             </div>
-            {isCreator && (
-              <button
-                className="mt-4 w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Poll
-              </button>
-            )}
+            <div className="flex justify-between mt-4">
+              {isCreator && (
+                <button
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                  onClick={() => setViewMode('edit')}
+                >
+                  Edit Poll
+                </button>
+              )}
+              {timeLeft === 0 && (
+                <button
+                  className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+                  onClick={() => setViewMode('results')}
+                >
+                  View Results
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="w-1/2 p-6">
-            <div className="flex items-center mb-6">
-              <button
-                onClick={() => setIsEditing(false)}
-                className="text-lg bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full px-3 py-1"
-              >
-                ←
-              </button>
-            </div>
-            <div className="space-y-4">
-              {/* TODO */}
-            </div>
-            <button
-              className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              onClick={() => setIsEditing(false)}
-            >
-              Save
-            </button>
-          </div>
+          <PollResultsView
+            candidates={candidates || []}
+            onBack={() => setViewMode('main')}
+          />
         </div>
+
         <div className="p-6">
           <button
-            className="mt-6 w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
+            className="w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
             onClick={onClose}
           >
             Close
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function PollEditView({
+  onSave,
+  onBack,
+  error,
+  duration,
+  setDuration,
+  durationUnit,
+  setDurationUnit
+}: {
+  onSave: () => void,
+  onBack: () => void,
+  error: string,
+  duration: string,
+  setDuration: (value: string) => void,
+  durationUnit: string,
+  setDurationUnit: (value: string) => void
+}) {
+  return (
+    <div className="w-full p-6">
+      <div className="flex items-center mb-6">
+        <button
+          onClick={onBack}
+          className="text-lg bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full px-3 py-1"
+        >
+          ←
+        </button>
+      </div>
+      <div className="space-y-4">
+        <h3 className="text-xl font-bold">Edit Poll Duration</h3>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            className="w-full border p-2 rounded"
+            placeholder="Poll Duration"
+            value={duration}
+            onChange={e => setDuration(e.target.value)}
+            min="1"
+          />
+          <select
+            className="border p-2 rounded"
+            value={durationUnit}
+            onChange={e => setDurationUnit(e.target.value)}
+          >
+            <option value="min">Minutes</option>
+            <option value="hour">Hours</option>
+            <option value="day">Days</option>
+          </select>
+        </div>
+        {error && <div className="text-red-600 text-sm">{error}</div>}
+        <button
+          className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          onClick={onSave}
+        >
+          Save Changes
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function PollResultsView({
+  candidates,
+  onBack
+}: {
+  candidates: { name: string; votesCount: BN }[],
+  onBack: () => void
+}) {
+  // Calculate total votes
+  const totalVotes = useMemo(() => {
+    return candidates.reduce((sum, candidate) => sum + candidate.votesCount.toNumber(), 0)
+  }, [candidates])
+
+  return (
+    <div className="w-full p-6">
+      <div className="flex items-center mb-6">
+        <button
+          onClick={onBack}
+          className="text-lg bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full px-3 py-1"
+        >
+          ←
+        </button>
+      </div>
+
+      <h3 className="text-xl font-bold mb-4">Poll Results</h3>
+
+      <div className="space-y-4 mb-6">
+        {candidates.map((candidate) => {
+          const votes = candidate.votesCount.toNumber()
+          const percentage = totalVotes > 0 ? (votes / totalVotes * 100) : 0
+
+          return (
+            <div key={candidate.name} className="space-y-2">
+              <div className="flex justify-between">
+                <span className="font-medium">{candidate.name}</span>
+                <span>{votes} votes ({percentage.toFixed(1)}%)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-4">
+                <div
+                  className="bg-blue-600 h-4 rounded-full"
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <h4 className="font-semibold mb-2">Summary</h4>
+        <p>Total votes cast: {totalVotes}</p>
+        {totalVotes > 0 && (
+          <p>
+            Leading: {candidates.reduce((prev, current) =>
+              prev.votesCount.gt(current.votesCount) ? prev : current
+            ).name}
+          </p>
+        )}
       </div>
     </div>
   )
