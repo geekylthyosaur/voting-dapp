@@ -46,13 +46,13 @@ export function AccountBalanceCheck({ address }: { address: PublicKey }) {
     return (
       <div className="alert alert-warning text-warning-content/80 rounded-none flex justify-center">
         <span>
-          You are connected to <strong>{cluster.name}</strong> but your account is not found on this cluster.
+          Ви під'єднані до <strong>{cluster.name}</strong> але ваш акаунт не знайдено на цьому кластері.
         </span>
         <button
           className="btn btn-xs btn-neutral"
           onClick={() => mutation.mutateAsync(1).catch((err) => console.log(err))}
         >
-          Request Airdrop
+          Викликати Airdrop
         </button>
       </div>
     )
@@ -85,10 +85,10 @@ export function AccountButtons({ address }: { address: PublicKey }) {
           className="btn btn-xs lg:btn-md btn-outline"
           onClick={() => setShowSendModal(true)}
         >
-          Send
+          Надіслати
         </button>
         <button className="btn btn-xs lg:btn-md btn-outline" onClick={() => setShowReceiveModal(true)}>
-          Receive
+          Отримати
         </button>
       </div>
     </div>
@@ -198,7 +198,7 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between">
-        <h2 className="text-2xl font-bold">Transaction History</h2>
+        <h2 className="text-2xl font-bold">Історія Транзакцій</h2>
         <div className="space-x-2">
           {query.isLoading ? (
             <span className="loading loading-spinner"></span>
@@ -213,15 +213,15 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
       {query.isSuccess && (
         <div>
           {query.data.length === 0 ? (
-            <div>No transactions found.</div>
+            <div>Транзакцій не знайдено.</div>
           ) : (
             <table className="table border-4 rounded-lg border-separate border-base-300">
               <thead>
                 <tr>
-                  <th>Signature</th>
-                  <th className="text-right">Slot</th>
-                  <th>Block Time</th>
-                  <th className="text-right">Status</th>
+                  <th>Сигнатура</th>
+                  <th className="text-right">Слот</th>
+                  <th>Час Блоку</th>
+                  <th className="text-right">Статус</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,10 +237,10 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
                     <td className="text-right">
                       {item.err ? (
                         <div className="badge badge-error" title={JSON.stringify(item.err)}>
-                          Failed
+                          Помилка
                         </div>
                       ) : (
-                        <div className="badge badge-success">Success</div>
+                        <div className="badge badge-success">Успіх</div>
                       )}
                     </td>
                   </tr>
@@ -249,7 +249,7 @@ export function AccountTransactions({ address }: { address: PublicKey }) {
                   <tr>
                     <td colSpan={4} className="text-center">
                       <button className="btn btn-xs btn-outline" onClick={() => setShowAll(!showAll)}>
-                        {showAll ? 'Show Less' : 'Show All'}
+                        {showAll ? 'Показати менше' : 'Показати всі'}
                       </button>
                     </td>
                   </tr>
@@ -270,7 +270,7 @@ function BalanceSol({ balance }: { balance: number }) {
 function ModalReceive({ hide, show, address }: { hide: () => void; show: boolean; address: PublicKey }) {
   return (
     <AppModal title="Receive" hide={hide} show={show}>
-      <p>Receive assets by sending them to your public key:</p>
+      <p>Отримуйте SOL надсилаючи їх на адресу вашого публічного ключа:</p>
       <code>{address.toString()}</code>
     </AppModal>
   )
@@ -294,7 +294,7 @@ function ModalAirdrop({ hide, show, address }: { hide: () => void; show: boolean
         type="number"
         step="any"
         min="1"
-        placeholder="Amount"
+        placeholder="Кількість"
         className="input input-bordered w-full"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
@@ -317,9 +317,9 @@ function ModalSend({ hide, show, address }: { hide: () => void; show: boolean; a
     <AppModal
       hide={hide}
       show={show}
-      title="Send"
+      title="Надіслати"
       submitDisabled={!destination || !amount || mutation.isPending}
-      submitLabel="Send"
+      submitLabel="Надіслати"
       submit={() => {
         mutation
           .mutateAsync({
@@ -332,7 +332,7 @@ function ModalSend({ hide, show, address }: { hide: () => void; show: boolean; a
       <input
         disabled={mutation.isPending}
         type="text"
-        placeholder="Destination"
+        placeholder="Отримувач"
         className="input input-bordered w-full"
         value={destination}
         onChange={(e) => setDestination(e.target.value)}
@@ -342,7 +342,7 @@ function ModalSend({ hide, show, address }: { hide: () => void; show: boolean; a
         type="number"
         step="any"
         min="1"
-        placeholder="Amount"
+        placeholder="Кількість"
         className="input input-bordered w-full"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}

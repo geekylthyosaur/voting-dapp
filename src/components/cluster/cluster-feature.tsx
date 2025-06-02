@@ -10,10 +10,10 @@ export default function ClusterFeature() {
 
   return (
     <div>
-      <AppHero title="Clusters" subtitle="Manage and select your Solana clusters">
+      <AppHero title="Кластери" subtitle="Редагувати та вибрати кластери Solana">
         <ClusterUiModal show={showModal} hideModal={() => setShowModal(false)} />
         <button className="btn btn-xs lg:btn-md btn-primary" onClick={() => setShowModal(true)}>
-          Add Cluster
+          Додати Кластер
         </button>
       </AppHero>
       <ClusterUiTable />

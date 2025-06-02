@@ -80,7 +80,7 @@ export function ClusterUiModal({ hideModal, show }: { hideModal: () => void; sho
 
   return (
     <AppModal
-      title={'Add Cluster'}
+      title={'Додати Кластер'}
       hide={hideModal}
       show={show}
       submit={() => {
@@ -96,18 +96,18 @@ export function ClusterUiModal({ hideModal, show }: { hideModal: () => void; sho
           console.log('Invalid cluster endpoint')
         }
       }}
-      submitLabel="Save"
+      submitLabel="Зберегти"
     >
       <input
         type="text"
-        placeholder="Name"
+        placeholder="Назва"
         className="input input-bordered w-full"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
       <input
         type="text"
-        placeholder="Endpoint"
+        placeholder="Шлях"
         className="input input-bordered w-full"
         value={endpoint}
         onChange={(e) => setEndpoint(e.target.value)}
@@ -117,7 +117,7 @@ export function ClusterUiModal({ hideModal, show }: { hideModal: () => void; sho
         value={network}
         onChange={(e) => setNetwork(e.target.value as ClusterNetwork)}
       >
-        <option value={undefined}>Select a network</option>
+        <option value={undefined}>Виберіть мережу</option>
         <option value={ClusterNetwork.Devnet}>Devnet</option>
         <option value={ClusterNetwork.Testnet}>Testnet</option>
         <option value={ClusterNetwork.Mainnet}>Mainnet</option>
@@ -133,8 +133,8 @@ export function ClusterUiTable() {
       <table className="table border-4 border-separate border-base-300">
         <thead>
           <tr>
-            <th>Name/ Network / Endpoint</th>
-            <th className="text-center">Actions</th>
+            <th>Назва / Мережа / Шлях</th>
+            <th className="text-center">Дії</th>
           </tr>
         </thead>
         <tbody>
@@ -152,7 +152,7 @@ export function ClusterUiTable() {
                     )}
                   </span>
                 </div>
-                <span className="text-xs">Network: {item.network ?? 'custom'}</span>
+                <span className="text-xs">Мережа: {item.network ?? 'custom'}</span>
                 <div className="whitespace-nowrap text-gray-500 text-xs">{item.endpoint}</div>
               </td>
               <td className="space-x-2 whitespace-nowrap text-center">

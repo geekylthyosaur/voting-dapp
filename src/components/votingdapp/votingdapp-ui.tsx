@@ -1,7 +1,7 @@
 'use client'
 
 import { Keypair, PublicKey } from '@solana/web3.js'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useMemo, useState, useEffect } from 'react'
 import { ellipsify } from '../ui/ui-layout'
 import { ExplorerLink } from '../cluster/cluster-ui'
@@ -90,7 +90,7 @@ export function VotingdappCreate() {
         className="btn btn-xs lg:btn-md btn-primary"
         onClick={openModal}
       >
-        Create Poll
+        Створити
       </button>
       {isModalOpen && <VotingdappCreatePopup onClose={closeModal} />}
     </div>
@@ -108,17 +108,17 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
   const [durationUnit, setDurationUnit] = useState("min")
 
   const isValid = () => {
-    if (!name.trim()) return "Poll name is required"
-    if (new TextEncoder().encode(name).length > 64) return "Poll name is too long"
-    if (!description.trim()) return "Description is required"
-    if (new TextEncoder().encode(description).length > 64) return "Description is too long"
+    if (!name.trim()) return "Назва голосування є обов'язковою"
+    if (new TextEncoder().encode(name).length > 64) return "Назва голосування задовга"
+    if (!description.trim()) return "Опис голосування є обов'язковим"
+    if (new TextEncoder().encode(description).length > 64) return "Опис голосування задовгий"
     const durationValue = parseInt(duration)
-    if (isNaN(durationValue) || durationValue < 1) return "Duration must be greater than 0"
-    if (candidates.length === 0) return "At least one candidate is required"
-    if (candidates.length > 8) return "Maximum 8 candidates allowed"
+    if (isNaN(durationValue) || durationValue < 1) return "Тривалість голосування має бути більше за 0"
+    if (candidates.length === 0) return "Необхідний щонайменше 1 кандидат"
+    if (candidates.length > 8) return "Дозволено максимум 8 кандидатів"
     for (const c of candidates) {
-      if (!c.trim()) return "Candidate name can't be empty"
-      if (new TextEncoder().encode(c).length > 32) return "Candidate name too long"
+      if (!c.trim()) return "Назва кандидата є обов'язковою"
+      if (new TextEncoder().encode(c).length > 32) return "Назва кандидата задовга"
     }
     return ""
   }
@@ -146,13 +146,13 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
       <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
         <input
           className="w-full border p-2 rounded"
-          placeholder="Poll Name"
+          placeholder="Назва"
           value={name}
           onChange={e => setName(e.target.value)}
         />
         <input
           className="w-full border p-2 rounded"
-          placeholder="Description"
+          placeholder="Опис"
           value={description}
           onChange={e => setDescription(e.target.value)}
         />
@@ -160,7 +160,7 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
           <input
             type="number"
             className="w-full border p-2 rounded"
-            placeholder="Poll Duration"
+            placeholder="Тривалість"
             value={duration}
             onChange={e => setDuration(e.target.value)}
             min="1"
@@ -170,9 +170,9 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
             value={durationUnit}
             onChange={e => setDurationUnit(e.target.value)}
           >
-            <option value="min">Minutes</option>
-            <option value="hour">Hours</option>
-            <option value="day">Days</option>
+            <option value="min">Хвилини</option>
+            <option value="hour">Години</option>
+            <option value="day">Дні</option>
           </select>
         </div>
 
@@ -180,7 +180,7 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
           <div key={i} className="flex items-center gap-2">
             <input
               className="flex-1 border p-2 rounded"
-              placeholder={`Candidate ${i + 1}`}
+              placeholder={`Кандидат ${i + 1}`}
               value={c}
               onChange={e => {
                 const copy = [...candidates]
@@ -206,7 +206,7 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
               className="px-2 py-1 bg-gray-300 rounded"
               onClick={() => setCandidates([...candidates, ""])}
             >
-              Add Candidate
+              Додати кандидата
             </button>
           )}
         </div>
@@ -217,13 +217,13 @@ export function VotingdappCreatePopup({ onClose }: { onClose: () => void }) {
             onClick={handleCreate}
             disabled={createPollMutation.isPending}
           >
-            Create Poll {createPollMutation.isPending && '...'}
+            Створити {createPollMutation.isPending && '...'}
           </button>
           <button
             className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
             onClick={onClose}
           >
-            Close
+            Закрити
           </button>
         </div>
       </div>
@@ -261,8 +261,8 @@ export function VotingdappList() {
         </div>
       ) : (
         <div className="text-center">
-          <h2 className={'text-2xl'}>No polls</h2>
-          No polls found. Create one to get started.
+          <h2 className={'text-2xl'}>Немає голосувань</h2>
+          Голосувань не знайдено. Створіть голосування щоб розпочати.
         </div>
       )}
     </div>
@@ -306,7 +306,7 @@ function VotingdappCard({ account }: { account: PublicKey }) {
 }
 
 function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose: () => void }) {
-  const { voteMutation } = useVotingdappProgram()
+  const { voteMutation, editPollMutation } = useVotingdappProgram()
   const { accountQuery } = useVotingdappProgramAccount({ account })
 
   type LoadingState = { [key: string]: boolean }
@@ -321,10 +321,11 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
 
   const name = useMemo(() => accountQuery.data?.name ?? '', [accountQuery.data?.name])
   const description = useMemo(() => accountQuery.data?.description, [accountQuery.data?.description])
-  const timestamp = accountQuery.data?.timestamp?.toNumber()
-  const timeLeft = useCountdown(timestamp)
+  const timestamp = accountQuery.data?.timestamp?.toNumber()!
+  const [targetTimestamp, setTargetTimestamp] = useState<number>(timestamp)
+  const timeLeft = useCountdown(targetTimestamp)
   const candidates = useMemo(() => accountQuery.data?.candidates, [accountQuery.data?.candidates])
-
+  const [isSaving, setIsSaving] = useState(false)
   const {
     error,
     duration,
@@ -350,15 +351,20 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
         ...prevState,
         [candidate.name]: false,
       }))
+      localStorage.setItem(name, candidate.name)
     }
   }
 
   const onSaveEdit = async () => {
+    setIsSaving(true)
     const timestamp = await handleEdit()
     if (timestamp) {
-      // await editPollMutation.mutateAsync({ timestamp })
+      await editPollMutation.mutateAsync({ name, timestamp })
+      setTargetTimestamp(timestamp.toNumber())
+      setIsSaving(false)
       setViewMode('main')
     }
+    setIsSaving(false)
   }
 
   return (
@@ -380,6 +386,7 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
             setDuration={setDuration}
             durationUnit={durationUnit}
             setDurationUnit={setDurationUnit}
+            isSaving={isSaving}
           />
 
           <div className="w-full p-6" style={{ flex: '0 0 33.33%' }}>
@@ -387,11 +394,11 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
             <p className="text-gray-700 text-center mt-2">
               {description}
               <div className="text-gray-600 text-sm">
-                {timeLeft === 0 ? 'Voting has ended' : `Time left: ${formatTime(timeLeft)}`}
+                {timeLeft === 0 ? 'Голосування завершено' : `Time left: ${formatTime(timeLeft)}`}
               </div>
             </p>
             <div className="mt-6 space-y-4">
-              <h3 className="text-lg font-semibold">Candidates</h3>
+              <h3 className="text-lg font-semibold">Кандидати</h3>
               {candidates?.map((candidate: { name: string; votesCount: BN }) => (
                 <div
                   key={candidate.name}
@@ -399,17 +406,17 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
                 >
                   <div>
                     <p className="font-medium">{candidate.name}</p>
-                    <p className="text-sm text-gray-500">{candidate.votesCount.toString()} votes</p>
+                    <p className="text-sm text-gray-500">{candidate.votesCount.toString()} голосів</p>
                   </div>
                   <button
                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => handleVoteClick(candidate)}
-                    disabled={loadingState[candidate.name] || timeLeft === 0}
+                    disabled={loadingState[candidate.name] || timeLeft === 0 || localStorage.getItem(name) !== null}
                   >
                     {loadingState[candidate.name] ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      "Vote"
+                      "Проголосувати"
                     )}
                   </button>
                 </div>
@@ -421,7 +428,7 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
                   className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
                   onClick={() => setViewMode('edit')}
                 >
-                  Edit Poll
+                  Редагувати
                 </button>
               )}
               {timeLeft === 0 && (
@@ -429,7 +436,7 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
                   className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
                   onClick={() => setViewMode('results')}
                 >
-                  View Results
+                  Результати
                 </button>
               )}
             </div>
@@ -446,7 +453,7 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
             className="w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md"
             onClick={onClose}
           >
-            Close
+            Закрити
           </button>
         </div>
       </div>
@@ -461,7 +468,8 @@ function PollEditView({
   duration,
   setDuration,
   durationUnit,
-  setDurationUnit
+  setDurationUnit,
+  isSaving,
 }: {
   onSave: () => void,
   onBack: () => void,
@@ -469,7 +477,8 @@ function PollEditView({
   duration: string,
   setDuration: (value: string) => void,
   durationUnit: string,
-  setDurationUnit: (value: string) => void
+  setDurationUnit: (value: string) => void,
+  isSaving: boolean,
 }) {
   return (
     <div className="w-full p-6">
@@ -482,7 +491,7 @@ function PollEditView({
         </button>
       </div>
       <div className="space-y-4">
-        <h3 className="text-xl font-bold">Edit Poll Duration</h3>
+        <h3 className="text-xl font-bold">Змінити тривалість</h3>
         <div className="flex gap-2">
           <input
             type="number"
@@ -497,17 +506,22 @@ function PollEditView({
             value={durationUnit}
             onChange={e => setDurationUnit(e.target.value)}
           >
-            <option value="min">Minutes</option>
-            <option value="hour">Hours</option>
-            <option value="day">Days</option>
+            <option value="min">Хвилини</option>
+            <option value="hour">Години</option>
+            <option value="day">Дні</option>
           </select>
         </div>
         {error && <div className="text-red-600 text-sm">{error}</div>}
         <button
           className="mt-6 w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           onClick={onSave}
+          disabled={isSaving}
         >
-          Save Changes
+          {isSaving ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            'Зберегти'
+          )}
         </button>
       </div>
     </div>
@@ -521,7 +535,6 @@ function PollResultsView({
   candidates: { name: string; votesCount: BN }[],
   onBack: () => void
 }) {
-  // Calculate total votes
   const totalVotes = useMemo(() => {
     return candidates.reduce((sum, candidate) => sum + candidate.votesCount.toNumber(), 0)
   }, [candidates])
@@ -537,7 +550,7 @@ function PollResultsView({
         </button>
       </div>
 
-      <h3 className="text-xl font-bold mb-4">Poll Results</h3>
+      <h3 className="text-xl font-bold mb-4">Результати</h3>
 
       <div className="space-y-4 mb-6">
         {candidates.map((candidate) => {
@@ -548,7 +561,7 @@ function PollResultsView({
             <div key={candidate.name} className="space-y-2">
               <div className="flex justify-between">
                 <span className="font-medium">{candidate.name}</span>
-                <span>{votes} votes ({percentage.toFixed(1)}%)</span>
+                <span>{votes} голосів ({percentage.toFixed(1)}%)</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-4">
                 <div
@@ -562,11 +575,11 @@ function PollResultsView({
       </div>
 
       <div className="bg-gray-100 p-4 rounded-lg">
-        <h4 className="font-semibold mb-2">Summary</h4>
-        <p>Total votes cast: {totalVotes}</p>
+        <h4 className="font-semibold mb-2">Підсумок</h4>
+        <p>Всього голосів: {totalVotes}</p>
         {totalVotes > 0 && (
           <p>
-            Leading: {candidates.reduce((prev, current) =>
+            Перемагає: {candidates.reduce((prev, current) =>
               prev.votesCount.gt(current.votesCount) ? prev : current
             ).name}
           </p>

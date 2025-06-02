@@ -58,6 +58,28 @@ export function useVotingdappProgram() {
     }
   })
 
+  const editPollMutation = useMutation({
+    mutationKey: ['votingdapp', 'editPoll', { cluster }],
+    mutationFn: ({ name, timestamp }: { name: string; timestamp: BN }) => {
+      return program.methods
+        .editPoll(name, timestamp)
+        .accounts({
+          signer: provider.wallet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: (signature) => {
+      transactionToast(signature)
+      return accounts.refetch()
+    },
+    onError: (error: any) => {
+      console.error(error)
+      if (error.error?.errorCode?.code === 'VotingEnded') {
+        toast.error('Voting has ended')
+      }
+    },
+  })
+
   const voteMutation = useMutation({
     mutationKey: ['votingdapp', 'vote', { cluster }],
     mutationFn: ({ name, candidate }: { name: string, candidate: string }) => program.methods
@@ -91,6 +113,7 @@ export function useVotingdappProgram() {
     accounts,
     getProgramAccount,
     createPollMutation,
+    editPollMutation,
     voteMutation,
   }
 }

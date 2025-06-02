@@ -14,9 +14,9 @@ export default function VotingdappFeature() {
   return publicKey ? (
     <div>
       <AppHero
-        title="Votingdapp"
+        title="Голосування"
         subtitle={
-          'Create a new poll by clicking the "Create" button. The state of a poll is stored on-chain.'
+          'Створіть нове голосування натиснувши на кнопку "Створити". Стан усіх голосувань зберігається у блокчейні.'
         }
       >
         <p className="mb-6">

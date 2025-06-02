@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/votingdapp.json`.
  */
 export type Votingdapp = {
-  "address": "2VmZhuN5W39i28vzqPiJzV9WovoegLghrdJrzSwsS7at",
+  "address": "2Yh7vkhhRGkAwvSqvkrzJyeoQ5ZXutYxQFxrKGQDBvjx",
   "metadata": {
     "name": "votingdapp",
     "version": "0.1.0",
@@ -75,6 +75,61 @@ export type Votingdapp = {
           "type": {
             "vec": "string"
           }
+        }
+      ]
+    },
+    {
+      "name": "editPoll",
+      "discriminator": [
+        123,
+        142,
+        238,
+        68,
+        181,
+        249,
+        132,
+        126
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "u64"
         }
       ]
     },

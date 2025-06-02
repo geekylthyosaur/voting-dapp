@@ -23,15 +23,17 @@
     "@tabler/icons-react": "^3.30.0",
     "@tanstack/react-query": "^5.66.9",
     "@tanstack/react-query-next-experimental": "^5.66.9",
+    "chai": "^5.2.0",
     "daisyui": "^4.12.24",
     "jotai": "^2.12.1",
-    "next": "14.2.24",
+    "next": "^14.2.24",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.6",
+    "@types/chai": "^5.2.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22",
     "@types/react": "^18",

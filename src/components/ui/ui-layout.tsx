@@ -91,11 +91,11 @@ export function AppModal({
           <div className="join space-x-2">
             {submit ? (
               <button className="btn btn-xs lg:btn-md btn-primary" onClick={submit} disabled={submitDisabled}>
-                {submitLabel || 'Save'}
+                {submitLabel || 'Зберегти'}
               </button>
             ) : null}
             <button onClick={hide} className="btn">
-              Close
+              Закрити
             </button>
           </div>
         </div>

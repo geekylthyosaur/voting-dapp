@@ -1,5 +1,5 @@
 {
-  "address": "2VmZhuN5W39i28vzqPiJzV9WovoegLghrdJrzSwsS7at",
+  "address": "2Yh7vkhhRGkAwvSqvkrzJyeoQ5ZXutYxQFxrKGQDBvjx",
   "metadata": {
     "name": "votingdapp",
     "version": "0.1.0",
@@ -69,6 +69,61 @@
           "type": {
             "vec": "string"
           }
+        }
+      ]
+    },
+    {
+      "name": "edit_poll",
+      "discriminator": [
+        123,
+        142,
+        238,
+        68,
+        181,
+        249,
+        132,
+        126
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "poll",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "u64"
         }
       ]
     },

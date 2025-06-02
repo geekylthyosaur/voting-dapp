@@ -3,13 +3,14 @@
 
 use anchor_lang::prelude::*;
 use instructions::create_poll::*;
+use instructions::edit_poll::*;
 use instructions::vote::*;
 
 mod error;
 mod instructions;
 mod state;
 
-declare_id!("2VmZhuN5W39i28vzqPiJzV9WovoegLghrdJrzSwsS7at");
+declare_id!("2Yh7vkhhRGkAwvSqvkrzJyeoQ5ZXutYxQFxrKGQDBvjx");
 
 #[program]
 pub mod votingdapp {
@@ -23,6 +24,11 @@ pub mod votingdapp {
         candidates: Vec<String>,
     ) -> Result<()> {
         handle_create_poll(ctx, name, description, timestamp, candidates)
+    }
+
+    pub fn edit_poll(ctx: Context<EditPoll>, name: String, timestamp: u64) -> Result<()> {
+        _ = name;
+        handle_edit_poll(ctx, timestamp)
     }
 
     pub fn vote(ctx: Context<Vote>, name: String, candidate: String) -> Result<()> {

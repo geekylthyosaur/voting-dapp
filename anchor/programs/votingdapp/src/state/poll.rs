@@ -57,6 +57,14 @@ impl Poll {
         Ok(())
     }
 
+    pub fn edit(&mut self, timestamp: u64) -> Result<()> {
+        if self.timestamp < timestamp {
+            self.timestamp = timestamp
+        }
+
+        Ok(())
+    }
+
     pub fn vote(&mut self, candidate: String) -> Result<()> {
         self.candidates
             .iter_mut()
