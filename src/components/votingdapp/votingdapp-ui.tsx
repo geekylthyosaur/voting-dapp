@@ -347,11 +347,12 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
     } catch (e) {
       console.error(e)
     } finally {
+      console.log(account.toBase58())
       setLoadingState((prevState) => ({
         ...prevState,
         [candidate.name]: false,
       }))
-      localStorage.setItem(name, candidate.name)
+      localStorage.setItem(account.toString() + name, candidate.name)
     }
   }
 
@@ -411,7 +412,7 @@ function VotingdappCardPopup({ account, onClose }: { account: PublicKey, onClose
                   <button
                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => handleVoteClick(candidate)}
-                    disabled={loadingState[candidate.name] || timeLeft === 0 || localStorage.getItem(name) !== null}
+                    disabled={loadingState[candidate.name] || timeLeft === 0 || localStorage.getItem(account.toString() + name) !== null}
                   >
                     {loadingState[candidate.name] ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
